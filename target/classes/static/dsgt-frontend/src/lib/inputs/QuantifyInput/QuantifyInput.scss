@@ -1,0 +1,17 @@
+@import 'src/assets/stylesheet/config';
+
+.quantity-input {
+    display: flex;
+    align-items: center;
+  
+    .quantity-button {
+      @include general-button;
+    }
+  
+    .quantity-number {
+      width: 20px;
+      text-align: center;
+      border: 1px solid #ced4da;
+      padding: 10px;
+    }
+}

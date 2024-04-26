@@ -1,0 +1,11 @@
+be/kuleuven/dsgt4/auth/SecurityFilter$FirebaseAuthentication.class
+be/kuleuven/dsgt4/controller/SupplierController$1.class
+be/kuleuven/dsgt4/dto/ShopItem.class
+be/kuleuven/dsgt4/controller/ViewController.class
+be/kuleuven/dsgt4/controller/SupplierController.class
+be/kuleuven/dsgt4/Dsgt4Application$1.class
+be/kuleuven/dsgt4/Dsgt4Application.class
+be/kuleuven/dsgt4/dto/User.class
+be/kuleuven/dsgt4/auth/SecurityFilter.class
+be/kuleuven/dsgt4/dto/UserMessage.class
+be/kuleuven/dsgt4/auth/WebSecurityConfig.class

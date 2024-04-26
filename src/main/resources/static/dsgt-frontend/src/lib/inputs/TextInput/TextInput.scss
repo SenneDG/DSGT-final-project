@@ -1,0 +1,68 @@
+@import 'src/assets/stylesheet/config';
+
+.text-input {
+  @include input-component;
+
+  &.zen {
+    padding: 0;
+
+    .input-title-container,
+    .input-title,
+    .error-message {
+      display: none;
+    }
+  }
+
+  .input-title-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    .input-title {
+      @include input-title;
+    }
+  }
+
+  .input-container {
+    @include input-container;
+
+    .input-text-section {
+      position: relative;
+      display: flex;
+    }
+
+    .form-input {
+      @include general-input;
+
+      &.textarea {
+        font-family: initial;
+        padding: 0.5rem;
+        resize: none;
+        height: 11rem;
+        max-height: initial;
+      }
+
+      &.with-icon {
+        padding: 0 3.5rem 0 1.2rem;
+      }
+
+      &.disable {
+        background: $color-input-disable;
+      }
+    }
+
+    .trailing-icon {
+      @include input-trailing-icon;
+    }
+  }
+}
+
+.window-small {
+  .input-title {
+    @include input-title-mobile;
+  }
+
+  .input-container {
+    @include input-container-mobile;
+  }
+}

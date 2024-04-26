@@ -1,0 +1,66 @@
+@import 'src/assets/stylesheet/config';
+
+.homepage-content {
+    display: flex;
+    justify-content: space-between;
+    height: 100vh; 
+
+    .login-form {
+      flex: 1; 
+      background-color: white;
+
+      .login-content {
+        display: flex;
+        flex-direction: column;
+        margin-top: 200px;
+        padding: 20px;
+        justify-content: center;
+
+        .login-form-title{
+          display: flex;
+          justify-content: center;
+          font-size: x-large;
+          margin-bottom: 60px;
+        }
+
+        .error-message {
+          color: red;
+          font-size: small;
+          margin-top: 10px;
+        }
+
+        .submit-button {
+          @include general-button;
+          margin-top: 20px;
+        }
+
+        .login-footer {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          margin-top: 20px;
+          font-size: small;
+
+          .login-button {
+
+            &:hover {
+              cursor: pointer;
+              font-weight: bold;
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+
+    .background {
+      background: $color-general;
+      height: 100vh;
+      width: 60%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: large;
+    }
+}

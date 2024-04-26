@@ -1,0 +1,20 @@
+@import 'src/assets/stylesheet/config';
+
+
+.homepage-header {
+    display: flex;
+    justify-content: space-between;
+    height: 100px;
+    background-color: $color-general;
+    align-items: center;
+    padding: 0 20px;
+
+    .title {
+        font-size: xx-large;
+        color: white;
+    }
+
+    .login-button {
+        @include feature-button;
+    }
+}

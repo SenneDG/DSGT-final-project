@@ -1,0 +1,459 @@
+$color-main: #01407a;
+$color-main-sub: #54bceb;
+
+$color-kul: #137fa1;
+
+$color-general: #257960;
+// $color-general: #e59366;
+$color-success: #63b5a1;
+$color-warning: #e59366;
+$color-danger: #ff0000;
+$color-normal: #a9a9a9;
+
+$color-feature: $color-main;
+$color-indicator: #0bdc39;
+
+$color-pink: #ff0086;
+$color-orange: #ff6700;
+$color-yellow-light: #fff9e4;
+
+$color-grey-dark: #57536d;
+$color-grey-mid: #848484;
+$color-grey-background: #f6f6f6;
+
+$color-main-hover: #cc0f0f;
+$color-main-sub-hover: lighten($color-main-sub, 10%);
+$color-danger-hover: #f4b4b4;
+
+$color-text: #424242;
+$color-text-01: #242f38;
+$color-text-03: #768088;
+$color-text-title: #777777;
+$color-text-sub-content: #a8a8a8;
+$color-text-disabled: #c8c8c8;
+
+$color-background: #d3d3d3;
+$color-form-background: #060606;
+$color-divider: #dedede;
+
+$color-menu-select: #fde7eb;
+
+$color-input: #000000;
+$color-input-grey: #969696;
+$color-input-disable: #f2f2f2;
+$color-input-placeholder: #c4c4c4;
+
+$color-icon: #04839f;
+
+$color-table-header: #640f0f;
+$color-table-row: #f0f3e1;
+
+$color-table-row-hover: lighten($color-table-header, 10%);
+
+$color-input-border: #c4c4c4;
+$color-table-border: #9b9b9b;
+
+$color-menu-title: #ffe4d8;
+$color-menu-title-background: lighten($color-main, 10%);
+
+$color-input-background: #e7fbfd;
+
+$color-modal-dim: rgba(80, 80, 80, 0.45);
+
+$color-calendar-today: #899cac33;
+
+$size-header-height: 7.2rem;
+$size-footer-height: 6rem;
+
+$size-card-header-height: 5rem;
+
+$size-menu-width: 18rem;
+$size-side-panel-width: 27rem;
+
+$size-default-bottom-padding: 1.5rem;
+
+$size-form-max-width: 124rem;
+
+$font-size-page-title: 3rem;
+$font-size-title: 1.8rem;
+$font-size-sub-title: 1.6rem;
+$font-size-general: 1.5rem;
+$font-size-description: 1.4rem;
+$font-size-note: 1.2rem;
+
+$opacity-disable: 0.5;
+$opacity-hover: 0.7;
+
+$border-radius-form: 0.5rem;
+$border-radius-input: 0.6rem;
+$border-radius-default: 1rem;
+$border-radius-button: 2.25rem;
+
+$box-shadow-default: 0.5rem 0.5rem 1rem 0 rgba(91, 91, 91, 0.5);
+$box-shadow-container: 0px 2px 4px rgba(0, 0, 0, 0.15);
+$box-shadow-reverse-container: 0px -2px -4px rgba(0, 0, 0, 0.15);
+$box-shadow-button: 0px 2px 4px rgba(0, 0, 0, 0.15);
+$box-shadow-main-menu: 10px 0 25px 3px rgba(50, 50, 50, 0.6);
+
+$background-button-theme: linear-gradient(
+  129.28deg,
+  #ff7a43 34.52%,
+  #ff33c1 98.62%
+);
+
+$font-weight-normal: 400;
+$font-weight-bold: 600;
+
+$letter-spacing-default: 0.04rem;
+
+$padding-default: 2.5rem 2.5rem;
+
+@mixin page-title {
+  color: $color-main;
+  font-size: 2.3rem;
+  font-weight: $font-weight-normal;
+  line-height: 3.7rem;
+  padding-bottom: 1rem;
+}
+
+@mixin center-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin outline-none() {
+  &:focus {
+    outline: none;
+  }
+}
+
+@mixin disabled() {
+  opacity: $opacity-disable;
+  pointer-events: none;
+  touch-action: none;
+  cursor: pointer;
+}
+
+@mixin base-button() {
+  @include no-select;
+  @include outline-none;
+  text-align: center;
+  cursor: pointer;
+  font-size: $font-size-general;
+  height: 3.6rem;
+  line-height: 3.6rem;
+  border-radius: $border-radius-default;
+  box-sizing: border-box;
+  padding: 0 1rem;
+}
+
+@mixin button($color) {
+  @include base-button;
+  color: white;
+  background-color: $color;
+
+  &:hover {
+    background-color: lighten($color, 10%);
+  }
+}
+
+@mixin general-button() {
+  @include button($color-general);
+}
+
+@mixin success-button() {
+  @include button($color-success);
+}
+
+@mixin warning-button() {
+  @include button($color-warning);
+}
+
+@mixin danger-button() {
+  @include button($color-danger);
+}
+
+@mixin normal-button() {
+  @include button($color-normal);
+}
+
+@mixin feature-button() {
+  @include button($color-feature);
+}
+
+@mixin pass-button() {
+  @include button($color-indicator);
+}
+
+@mixin kul-button() {
+  @include button($color-kul);
+}
+
+@mixin theme-button() {
+  @include no-select;
+  @include outline-none;
+  height: 4.5rem;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-align: center;
+  font-size: $font-size-description;
+  line-height: 4.5rem;
+  border-radius: $border-radius-button;
+  background: $background-button-theme;
+  color: white;
+
+  &:hover {
+    filter: brightness(110%);
+  }
+}
+
+@mixin white-button() {
+  @include button(white);
+  color: $color-kul;
+
+  &:hover {
+    color: lighten($color-kul, 10%);
+  }
+}
+
+@mixin white-button-color($color) {
+  @include button(white);
+  color: $color;
+
+  &:hover {
+    color: lighten($color, 10%);
+  }
+}
+
+@mixin cancel-button() {
+  @include button(white);
+  color: $color-text;
+
+  &:hover {
+    color: lighten($color-text, 20%);
+  }
+}
+
+@mixin input-component() {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  //padding-bottom: $size-default-bottom-padding;
+}
+
+@mixin input-title() {
+  display: flex;
+  font-size: $font-size-description;
+  color: $color-grey-mid;
+  min-width: 0;
+  line-height: 2.2rem;
+  margin-bottom: 1rem;
+
+  &.required {
+    display: flex;
+
+    &::after {
+      content: '*';
+      color: red;
+      margin-left: 0.2rem;
+      align-self: flex-start;
+    }
+  }
+}
+
+@mixin input-title-mobile() {
+  min-width: 12rem;
+  max-width: 12rem;
+}
+
+@mixin input-container() {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  grid-gap: 0.8rem;
+  min-width: 0;
+
+  &.full {
+    max-width: initial;
+  }
+
+  .message-section {
+    @include input-message-section;
+  }
+}
+
+@mixin input-container-mobile() {
+  flex-direction: column;
+  grid-gap: 0.8rem;
+
+  .form-input {
+    max-width: initial;
+    min-width: 0;
+  }
+
+  .message-section {
+    align-items: initial;
+  }
+}
+
+@mixin general-input() {
+  @include outline-none;
+  min-height: 4.5rem;
+  max-height: 4.5rem;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  font-size: $font-size-description;
+  border: 1px solid $color-input-border;
+  border-radius: $border-radius-input;
+  flex: 1;
+  color: $color-input;
+  background-color: white;
+  margin: 0;
+
+  &:focus {
+    // TODO: add gradient...
+  }
+
+  &.full {
+    max-width: initial;
+  }
+
+  &.display {
+    @include disabled;
+    color: $color-grey-mid;
+    background-color: $color-background;
+  }
+
+  &::placeholder {
+    color: $color-input-placeholder;
+  }
+
+  &::-webkit-input-placeholder {
+    color: $color-input-placeholder;
+  }
+
+  &::-moz-placeholder {
+    color: $color-input-placeholder;
+  }
+
+  &:-moz-placeholder {
+    color: $color-input-placeholder;
+  }
+
+  &:-ms-input-placeholder {
+    color: $color-input-placeholder;
+  }
+}
+
+@mixin grey-placeholder() {
+  &::placeholder {
+    color: $color-input-grey;
+  }
+
+  &::-webkit-input-placeholder {
+    color: $color-input-grey;
+  }
+
+  &::-moz-placeholder {
+    color: $color-input-grey;
+  }
+
+  &:-moz-placeholder {
+    color: $color-input-grey;
+  }
+
+  &:-ms-input-placeholder {
+    color: $color-input-grey;
+  }
+}
+
+@mixin input-description() {
+  display: flex;
+  align-items: center;
+  font-size: $font-size-note;
+  line-height: 2rem;
+  color: $color-pink;
+  flex: 1;
+}
+
+@mixin input-trailing-icon() {
+  @include center-item;
+  @include outline-none;
+  position: absolute;
+  right: 1rem;
+  top: 0;
+  cursor: pointer;
+  width: 2.4rem;
+  height: 4.5rem;
+  color: $color-input-grey;
+
+  &:hover {
+    filter: brightness(120%);
+  }
+}
+
+@mixin input-error() {
+  font-family: 'Inter', sans-serif;
+  line-height: 2rem;
+  font-size: $font-size-note;
+  color: $color-pink;
+}
+
+@mixin input-message-section() {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  grid-gap: 0.6rem;
+
+  .input-description {
+    @include input-description;
+  }
+
+  .error-message {
+    @include input-error;
+  }
+}
+
+@mixin checkbox() {
+  @include center-item;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 0.2rem solid $color-main;
+  border-radius: 0.3rem;
+  cursor: pointer;
+
+  &.selected {
+    background-color: $color-main;
+
+    .icon {
+      color: white;
+    }
+  }
+}
+
+@mixin no-select() {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+}
+
+@mixin scrollbar() {
+  &::-webkit-scrollbar {
+    -webkit-appearance: none;
+    height: 1.5rem;
+    width: 1.2rem;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 0.5rem;
+    -webkit-box-shadow: 0 0 0.1rem rgba(255, 255, 255, 0.5);
+    border: solid 0.3rem transparent;
+    box-shadow: inset 0 0 1rem 1rem rgba(0, 0, 0, 0.5);
+  }
+}

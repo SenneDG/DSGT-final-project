@@ -1,0 +1,26 @@
+@import '../../../../assets/stylesheet/config';
+
+.error-modal {
+  width: 35rem;
+  max-width: 100%;
+
+  .message {
+    font-size: $font-size-general;
+    text-align: center;
+    padding: 3rem 1rem;
+    white-space: pre-wrap;
+  }
+
+  .button-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    border-top: 1px dashed $color-input-border;
+
+    .confirm-button {
+      @include general-button;
+      box-sizing: border-box;
+      margin: 1rem 2rem;
+    }
+  }
+}

@@ -1,0 +1,61 @@
+@import 'src/assets/stylesheet/config';
+
+.checkout-page {
+    .checkout-content {
+        display: flex;
+        margin: 100px;
+
+        .checkout-my-cart {
+            width: 70%;
+            background-color: white;
+            padding: 50px;
+            border-radius: 10px;
+            font-size: x-large;
+
+            .checkout-items {
+                .checkout-item {
+                    font-size: large;
+
+                    .checkout-item-actions {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 20px;
+
+                        .remove-button {
+                            @include danger-button;
+                        }
+                    }
+                }
+            }
+
+            .checkout-info {
+                display: flex;
+                font-size: x-large;
+                justify-content: space-between;
+            }
+        }
+
+        .checkout-form {
+            width: 30%;
+            height: 550px;
+            padding: 30px;
+            margin-left: 40px;
+            background-color: white;
+            border-radius: 10px;
+
+            .checkout-button {
+                @include general-button;
+            }
+        }
+    }
+}
+
+.divider {
+    margin: 20px 0;
+    border-bottom: 1px solid gray;
+}
+
+.empty-cart {
+    font-size: large;
+    color: gray;
+}

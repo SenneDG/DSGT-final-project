@@ -1,0 +1,11 @@
+@import 'src/assets/stylesheet/config';
+
+.webshop {
+    .shop-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-gap: 50px;
+        margin-top: 20px;
+        padding: 30px;
+    }
+}

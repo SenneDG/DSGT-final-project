@@ -1,0 +1,9 @@
+@import 'src/assets/stylesheet/config';
+
+.button-div {
+  cursor: pointer;
+
+  &.disabled {
+    @include disabled;
+  }
+}
