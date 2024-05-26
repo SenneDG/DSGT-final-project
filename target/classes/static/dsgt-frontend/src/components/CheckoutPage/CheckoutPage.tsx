@@ -13,6 +13,7 @@ import { Formik } from "formik";
 import TextInput from "../../lib/inputs/TextInput/TextInput";
 import ApiService from "../../utils/api/ApiService";
 import path from "../../utils/path/path";
+import ModalHelper from "../../utils/helpers/ModalHelper";
 
 interface State {}
 
@@ -34,6 +35,7 @@ interface OwnProps {
 type Props = MapStateToProps & DispatchProps & OwnProps;
 
 class CheckoutPage extends React.PureComponent<Props, State> {
+
     constructor(props: Props) {
         super(props);
     }
@@ -88,13 +90,18 @@ class CheckoutPage extends React.PureComponent<Props, State> {
                         }}
                         onSubmit={(values, { setSubmitting }) => {
                             console.log(values);
-                            ApiService.general.checkout(this.props.user.token, cartItems.map(item => ({ id: item.id, supplier: item.supplier,  quantity: item.quantity })))
+                            ApiService.general.checkout(this.props.user.token, cartItems.map(item => ({ id: item.id, supplier: item.supplier, quantity: item.quantity, name: item.name })))
                             .then(() => {
                                 this.props.clearCart();
                                 this.props.navigate(path.webshopPath);
-
                             })
-                            setSubmitting(false);
+                            .catch((error) => {
+                                console.error(error);
+                                ModalHelper.openErrorModal({message: 'The checkout can not be processed.'});
+                            })
+                            .finally(() => {
+                                setSubmitting(false);
+                            });
                         }}
                         >
                         {({ isSubmitting, handleChange, handleSubmit, values, touched, errors }) => (

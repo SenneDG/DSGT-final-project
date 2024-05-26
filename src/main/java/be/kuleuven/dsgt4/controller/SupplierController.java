@@ -8,11 +8,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
+import com.google.cloud.firestore.Query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
 import com.google.common.util.concurrent.MoreExecutors;
 
 
@@ -26,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 @RestController
 @RequestMapping("/api/general")
 public class SupplierController {
@@ -33,6 +38,11 @@ public class SupplierController {
     private final WebClient webClient1;
     private final WebClient webClient2;
     private Firestore db;
+
+    public enum TransactionStatus {
+        COMMIT,
+        ROLLBACK
+    }
 
     public SupplierController(WebClient.Builder webClientBuilder, Firestore db) {
         this.webClient1 = webClientBuilder.baseUrl("http://localhost:9090/api").build();
@@ -89,61 +99,176 @@ public class SupplierController {
                 .collectList();
     }
 
-    @PostMapping("/checkout")
-    public Mono<ResponseEntity<Void>> checkout(@RequestBody List<Map<String, String>> items) {
-        List<ShopItem> checkedOutItems = new ArrayList<>();
-        List<Integer> quantities = new ArrayList<>();
+    @GetMapping("/last-order-status")
+    public ResponseEntity<Map<String, Object>> getLastOrderStatus() {
+        try {
+            // Fetch the last document in the 'orders' collection
+            ApiFuture<QuerySnapshot> query = db.collection("orders").orderBy("timestamp", Query.Direction.DESCENDING).limit(1).get();
+            QuerySnapshot querySnapshot = query.get();
+            List<QueryDocumentSnapshot> documents = querySnapshot.getDocuments();
 
-        return Flux.fromIterable(items)
-                .flatMap(item -> {
-                    UUID id = UUID.fromString(item.get("id"));
-                    int quantity = Integer.parseInt(item.get("quantity"));
-                    String supplier = item.get("supplier");
+            if (documents.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
 
-                    Mono<ShopItem> shopItem;
-                    WebClient webClient;
+            DocumentSnapshot lastOrder = documents.get(0);
+            Map<String, Object> orderData = lastOrder.getData();
 
-                    if ("Supplier 1".equals(supplier)) {
-                        webClient = webClient1;
-                    } else if ("Supplier 2".equals(supplier)) {
-                        webClient = webClient2;
-                    } else {
-                        return Mono.error(new RuntimeException("Unknown supplier: " + supplier));
-                    }
+            // Retrieve the ShopItems and status
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> items = (List<Map<String, Object>>) orderData.get("items");
+            TransactionStatus status = TransactionStatus.valueOf((String) orderData.get("state"));
 
-                    shopItem = webClient.get()
-                            .uri("/shop-items/{id}", id)
-                            .retrieve()
-                            .onStatus(HttpStatus::is5xxServerError, clientResponse -> Mono.empty())
-                            .bodyToMono(ShopItem.class)
-                            .onErrorResume(e -> Mono.empty());
+            // Prepare the response
+            Map<String, Object> response = new HashMap<>();
+            response.put("items", items);
+            response.put("status", status);
 
-                    return shopItem
-                            .flatMap(item1 -> {
-                                if (item1 != null && item1.getQuantity() < quantity) {
-                                    return Mono.error(new RuntimeException("Not enough items in stock: " + id));
-                                }
-
-                                quantities.add(quantity);
-
-                                Mono<ShopItem> checkoutItem = webClient.post()
-                                        .uri(uriBuilder -> uriBuilder.path("/shop-items/checkout")
-                                                .queryParam("id", id.toString())
-                                                .queryParam("quantity", Integer.toString(quantity))
-                                                .build())
-                                        .retrieve()
-                                        .bodyToMono(ShopItem.class)
-                                        .doOnSuccess(checkedOutItem -> checkedOutItems.add(checkedOutItem))
-                                        .onErrorResume(e -> Mono.empty());
-
-                                return checkoutItem;
-                            });
-                })
-                .then(Mono.fromRunnable(() -> putOrderInFirestore(checkedOutItems, quantities, db)))
-                .then(Mono.just(ResponseEntity.ok().build()));
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
-    public void putOrderInFirestore(List<ShopItem> shopItems, List<Integer> quantities, Firestore db) {
+    @PostMapping("/checkout")
+    public ResponseEntity<String> checkout(@RequestBody List<ShopItem> items) {
+        List<ShopItem> supplier1Items = new ArrayList<>();
+        List<ShopItem> supplier2Items = new ArrayList<>();
+        String orderId = UUID.randomUUID().toString();
+
+        for (ShopItem item : items) {
+            if ("Supplier 1".equals(item.getSupplier())) {
+                supplier1Items.add(item);
+            } else if ("Supplier 2".equals(item.getSupplier())) {
+                supplier2Items.add(item);
+            }
+        }
+
+        if(callPreparePhase(supplier1Items, supplier2Items)){
+            System.out.println("Prepare phase successful");
+            if(callCommitPhase(supplier1Items, supplier2Items, orderId)){
+                System.out.println("Commit phase successful");
+                putOrderInFirestore(items, TransactionStatus.COMMIT, orderId, db);
+                return ResponseEntity.ok("Checkout successful");
+            } else {
+                callRollbackPhase(supplier1Items, supplier2Items, orderId);
+                putOrderInFirestore(items, TransactionStatus.ROLLBACK, orderId, db);
+                System.out.println("Rollback phase successful");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Checkout failed: commit phase unsuccessful");
+            }
+        } else {
+            callRollbackPhase(supplier1Items, supplier2Items, orderId);
+            putOrderInFirestore(items, TransactionStatus.ROLLBACK, orderId, db);
+            System.out.println("Rollback phase successful");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Checkout failed: prepare phase unsuccessful");
+        }
+    }
+
+
+    private boolean callPreparePhase(List<ShopItem> supplier1Items, List<ShopItem> supplier2Items) {
+        boolean supplier1Success = true;
+        boolean supplier2Success = true;
+
+        if (!supplier1Items.isEmpty()) {
+            supplier1Success = webClient1.post()
+                    .uri("/shop-items/prepare-checkout")
+                    .bodyValue(supplier1Items)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
+                    .block()
+                    .getStatusCode()
+                    .is2xxSuccessful();
+        }
+
+        if (!supplier2Items.isEmpty()) {
+            supplier2Success = webClient2.post()
+                    .uri("/shop-items/prepare-checkout")
+                    .bodyValue(supplier2Items)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
+                    .block()
+                    .getStatusCode()
+                    .is2xxSuccessful();
+        }
+
+        return supplier1Success && supplier2Success;
+    }
+
+    public boolean callCommitPhase(List<ShopItem> supplier1Items, List<ShopItem> supplier2Items, String orderId) {
+        putOrderStatusInFirestore(TransactionStatus.COMMIT, orderId, db);
+
+        boolean supplier1Success = true;
+        boolean supplier2Success = true;
+
+        if (!supplier1Items.isEmpty()) {
+            supplier1Success = webClient1.post()
+                    .uri("/shop-items/commit-checkout")
+                    .bodyValue(supplier1Items)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
+                    .block()
+                    .getStatusCode()
+                    .is2xxSuccessful();
+        }
+
+        if (!supplier2Items.isEmpty()) {
+            supplier2Success = webClient2.post()
+                    .uri("/shop-items/commit-checkout")
+                    .bodyValue(supplier2Items)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
+                    .block()
+                    .getStatusCode()
+                    .is2xxSuccessful();
+        }
+
+        return supplier1Success && supplier2Success;
+    }
+
+    public boolean callRollbackPhase(List<ShopItem> supplier1Items, List<ShopItem> supplier2Items, String orderId) {
+        boolean supplier1Success = true;
+        boolean supplier2Success = true;
+
+        if (!supplier1Items.isEmpty()) {
+            supplier1Success = webClient1.post()
+                    .uri("/shop-items/rollback-checkout")
+                    .bodyValue(supplier1Items)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
+                    .block()
+                    .getStatusCode()
+                    .is2xxSuccessful();
+        }
+
+        if (!supplier2Items.isEmpty()) {
+            supplier2Success = webClient2.post()
+                    .uri("/shop-items/rollback-checkout")
+                    .bodyValue(supplier2Items)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
+                    .block()
+                    .getStatusCode()
+                    .is2xxSuccessful();
+        }
+
+        return supplier1Success && supplier2Success;
+    }
+
+
+    public void putOrderInFirestore(List<ShopItem> shopItems, TransactionStatus state, String orderId, Firestore db) {
+        System.out.printf("ShopItems: %s", shopItems);
+        if (shopItems.isEmpty()) {
+            System.out.println("No items to process");
+            return;
+        }
+
         // Create a new document with an auto-generated ID
         DocumentReference docRef = db.collection("orders").document();
 
@@ -152,19 +277,44 @@ public class SupplierController {
 
         for (int i = 0; i < shopItems.size(); i++) {
             ShopItem shopItem = shopItems.get(i);
-            int quantity = quantities.get(i);
             // Create a Map to store the data we want to set
             Map<String, Object> data = new HashMap<>();
-            data.put("id", shopItem.getId());
+            data.put("id", shopItem.getId().toString());
             data.put("name", shopItem.getName());
-            data.put("quantity", quantity);
+            data.put("quantity", shopItem.getQuantity());
 
             items.add(data);
         }
 
         // Create a Map for the order
         Map<String, Object> order = new HashMap<>();
+        order.put("timestamp", System.currentTimeMillis());
         order.put("items", items);
+        order.put("state", state);
+
+        ApiFuture<com.google.cloud.firestore.WriteResult> result = docRef.set(order);
+
+        result.addListener(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    com.google.cloud.firestore.WriteResult writeResult = result.get();
+                    System.out.println("Order successfully written at: " + writeResult.getUpdateTime());
+                } catch (Exception e) {
+                    System.out.println("Failed to write order: " + e.getMessage());
+                }
+            }
+        }, MoreExecutors.directExecutor());
+    }
+
+    public void putOrderStatusInFirestore(TransactionStatus state, String orderId,  Firestore db) {
+        // Create a new document with an auto-generated ID
+        DocumentReference docRef = db.collection("orderStatus").document();
+
+        // Create a Map for the order
+        Map<String, Object> order = new HashMap<>();
+        order.put("orderId", orderId);
+        order.put("state", state);
 
         ApiFuture<com.google.cloud.firestore.WriteResult> result = docRef.set(order);
 

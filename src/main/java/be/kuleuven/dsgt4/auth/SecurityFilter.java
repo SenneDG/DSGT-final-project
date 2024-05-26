@@ -69,7 +69,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         @Override
         public Collection<? extends GrantedAuthority> getAuthorities() {
             if (user.isManager()) {
-                return List.of(new SimpleGrantedAuthority("manager"));
+                return List.of(new SimpleGrantedAuthority("ROLE_MANAGER"));
             } else {
                 return new ArrayList<>();
             }

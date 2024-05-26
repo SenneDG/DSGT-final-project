@@ -14,14 +14,9 @@ axiosInstance.interceptors.response.use(
       const errorObject = error.response.data;
       const { code } = error.response.data;
       const responseMessage = error.response.data.message;
-      const message = StatusCodeHelper.getMessage({
-        code,
-        status: error.response.status, // Access status directly
-        responseMessage,
-        errorObject,
-      });
+      
       ModalHelper.openErrorModal({
-        message,
+        responseMessage,
       });
     } else {
       console.error(error);

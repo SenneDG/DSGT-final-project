@@ -1,6 +1,10 @@
 import store from '../../store/store';
 
 const getMessage = ({ code, status, responseMessage, errorObject }: any) => {
+  if (status === undefined) {
+    return responseMessage;
+  }
+
   const language =
     store.getState().language.languageInfo.languageObject.statusCode;
 
@@ -25,7 +29,11 @@ const getMessage = ({ code, status, responseMessage, errorObject }: any) => {
     return language['403']['403'];
   }
 
-  const message = language[status.toString()][code.toString()];
+  if (status === 500) {
+    return "Server Error";
+  }
+
+  const message = language[status.toString()] && language[status.toString()][code.toString()];
 
   return message === undefined ? responseMessage : message;
 };
