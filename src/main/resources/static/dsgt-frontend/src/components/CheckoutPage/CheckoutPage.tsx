@@ -97,7 +97,16 @@ class CheckoutPage extends React.PureComponent<Props, State> {
                             })
                             .catch((error) => {
                                 console.error(error);
-                                ModalHelper.openErrorModal({message: 'The checkout can not be processed.'});
+                                console.log(error);
+                                let message = "The checkout can not be processed.\n";
+                                let outOfStockItems = error.response.data.outOfStockItems;
+                                console.log(outOfStockItems);
+                                if (outOfStockItems.length != 0) {
+                                    for (const [key, value] of Object.entries(outOfStockItems)) {
+                                        message += `There are only ${value} left of item ${key}\n`;
+                                    }
+                                }
+                                ModalHelper.openErrorModal({message: message});
                             })
                             .finally(() => {
                                 setSubmitting(false);

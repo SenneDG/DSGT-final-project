@@ -1,5 +1,7 @@
 package be.kuleuven.dsgt4.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,15 +22,18 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.google.common.util.concurrent.MoreExecutors;
 
 
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import be.kuleuven.dsgt4.dto.ShopItem;
+import be.kuleuven.dsgt4.dto.ResponseSupplier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 @RestController
@@ -132,7 +137,7 @@ public class SupplierController {
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<String> checkout(@RequestBody List<ShopItem> items) {
+    public ResponseEntity<ResponseSupplier> checkout(@RequestBody List<ShopItem> items) {
         List<ShopItem> supplier1Items = new ArrayList<>();
         List<ShopItem> supplier2Items = new ArrayList<>();
         String orderId = UUID.randomUUID().toString();
@@ -145,41 +150,42 @@ public class SupplierController {
             }
         }
 
-        if(callPreparePhase(supplier1Items, supplier2Items)){
+        ResponseSupplier res = callPreparePhase(supplier1Items, supplier2Items);
+        System.out.println(res);
+        if(res.getResponse()){
             System.out.println("Prepare phase successful");
             if(callCommitPhase(supplier1Items, supplier2Items, orderId)){
                 System.out.println("Commit phase successful");
                 putOrderInFirestore(items, TransactionStatus.COMMIT, orderId, db);
-                return ResponseEntity.ok("Checkout successful");
+                return ResponseEntity.ok(res);
             } else {
                 callRollbackPhase(supplier1Items, supplier2Items, orderId);
                 putOrderInFirestore(items, TransactionStatus.ROLLBACK, orderId, db);
                 System.out.println("Rollback phase successful");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Checkout failed: commit phase unsuccessful");
+                res.setError("Checkout failed: error during commit phase");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
             }
         } else {
             callRollbackPhase(supplier1Items, supplier2Items, orderId);
             putOrderInFirestore(items, TransactionStatus.ROLLBACK, orderId, db);
             System.out.println("Rollback phase successful");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Checkout failed: prepare phase unsuccessful");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
         }
     }
 
 
-    private boolean callPreparePhase(List<ShopItem> supplier1Items, List<ShopItem> supplier2Items) {
-        boolean supplier1Success = true;
-        boolean supplier2Success = true;
+    private ResponseSupplier callPreparePhase(List<ShopItem> supplier1Items, List<ShopItem> supplier2Items) {
+        ResponseSupplier res = new ResponseSupplier();
+        Map<String, Integer> supplier1Success = new HashMap<String, Integer>();
+        Map<String, Integer> supplier2Success = new HashMap<String, Integer>();
 
         if (!supplier1Items.isEmpty()) {
             supplier1Success = webClient1.post()
                     .uri("/shop-items/prepare-checkout")
                     .bodyValue(supplier1Items)
                     .retrieve()
-                    .toBodilessEntity()
-                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
-                    .block()
-                    .getStatusCode()
-                    .is2xxSuccessful();
+                    .bodyToMono(Map.class)
+                    .block();
         }
 
         if (!supplier2Items.isEmpty()) {
@@ -187,14 +193,40 @@ public class SupplierController {
                     .uri("/shop-items/prepare-checkout")
                     .bodyValue(supplier2Items)
                     .retrieve()
-                    .toBodilessEntity()
-                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
-                    .block()
-                    .getStatusCode()
-                    .is2xxSuccessful();
+                    .bodyToMono(Map.class)
+                    .block();
+
         }
 
-        return supplier1Success && supplier2Success;
+        System.out.println(supplier1Success);
+        System.out.println(supplier2Success);
+
+        res.setResponse((supplier1Success == null || supplier1Success.isEmpty()) && (supplier2Success == null || supplier2Success.isEmpty()));
+        Map<String, Integer> outOfStockItems = new HashMap<String, Integer>();
+
+        System.out.println(res.getResponse());
+
+        if (supplier1Success != null) {
+            for (String key : supplier1Success.keySet()) {
+                outOfStockItems.put(key, supplier1Success.get(key));
+            }
+        }
+
+        if (supplier2Success != null) {
+            for (String key : supplier2Success.keySet()) {
+                outOfStockItems.put(key, supplier2Success.get(key));
+            }
+        }
+
+        System.out.println(outOfStockItems);
+
+        if (!res.getResponse()) {
+            res.setError("Not in stock");
+        }
+
+        res.setOutOfStockItems(outOfStockItems);
+
+        return res;
     }
 
     public boolean callCommitPhase(List<ShopItem> supplier1Items, List<ShopItem> supplier2Items, String orderId) {
@@ -263,7 +295,7 @@ public class SupplierController {
 
 
     public void putOrderInFirestore(List<ShopItem> shopItems, TransactionStatus state, String orderId, Firestore db) {
-        System.out.printf("ShopItems: %s", shopItems);
+        System.out.printf("ShopItems: %s\n", shopItems);
         if (shopItems.isEmpty()) {
             System.out.println("No items to process");
             return;
