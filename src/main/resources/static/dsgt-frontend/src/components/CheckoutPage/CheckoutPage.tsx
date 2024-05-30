@@ -124,7 +124,8 @@ class CheckoutPage extends React.PureComponent<Props, State> {
                                 console.log(outOfStockItems);
                                 if (outOfStockItems.length != 0) {
                                     for (const [key, value] of Object.entries(outOfStockItems)) {
-                                        message += `- There are only ${value} left of item ${getProductName(key)}\n`;
+                                        if (value == 0) message += `- There item '${getProductName(key)}' is currently out of stock\n`;
+                                        else message += `- There are only ${value} items left of '${getProductName(key)}'\n`;
                                     }
                                     setAnimatedItems(Object.keys(outOfStockItems));
                                 }
