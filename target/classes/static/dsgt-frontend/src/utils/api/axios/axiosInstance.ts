@@ -14,10 +14,7 @@ axiosInstance.interceptors.response.use(
       const errorObject = error.response.data;
       const { code } = error.response.data;
       const responseMessage = error.response.data.message;
-      
-      ModalHelper.openErrorModal({
-        responseMessage,
-      });
+
     } else {
       console.error(error);
       ModalHelper.openErrorModal({

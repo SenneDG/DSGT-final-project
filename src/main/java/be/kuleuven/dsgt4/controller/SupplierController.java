@@ -42,7 +42,7 @@ public class SupplierController {
 
     private final WebClient webClient1;
     private final WebClient webClient2;
-    private Firestore db;
+    private final Firestore db;
 
     public enum TransactionStatus {
         COMMIT,
@@ -50,8 +50,15 @@ public class SupplierController {
     }
 
     public SupplierController(WebClient.Builder webClientBuilder, Firestore db) {
-        this.webClient1 = webClientBuilder.baseUrl("http://localhost:9090/api").build();
-        this.webClient2 = webClientBuilder.baseUrl("http://localhost:9091/api").build();
+        String supplier1ApiKey = "Iw8zeveVyaPNWonPNaU0213uw3g6Ei";
+        this.webClient1 = WebClient.builder()
+                .baseUrl("http://localhost:9090/api?key=" + supplier1ApiKey)
+                .build();
+
+        String supplier2ApiKey = "Iw8zeveVyaPNWonPNaU0213uw3g6Ei";
+        this.webClient2 = WebClient.builder()
+                .baseUrl("http://localhost:9091/api?key=" + supplier2ApiKey)
+                .build();
         this.db = db;
         System.out.println("SupplierController Firestore instance: " + db);
     }
@@ -77,6 +84,7 @@ public class SupplierController {
                                 return shopItem;
                             });
                 })
+                .doOnError(e -> System.err.println("Error fetching items from Supplier 1: " + e.getMessage()))
                 .onErrorResume(e -> Flux.empty());
 
         Flux<ShopItem> shopItems2 = webClient2.get()
@@ -98,6 +106,7 @@ public class SupplierController {
                                 return shopItem;
                             });
                 })
+                .doOnError(e -> System.err.println("Error fetching items from Supplier 2: " + e.getMessage()))
                 .onErrorResume(e -> Flux.empty());
 
         return Flux.concat(shopItems1, shopItems2)
