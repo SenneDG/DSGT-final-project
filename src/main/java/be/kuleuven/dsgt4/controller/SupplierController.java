@@ -57,7 +57,7 @@ public class SupplierController {
 
         String supplier2ApiKey = "Iw8zeveVyaPNWonPNaU0213uw3g6Ei";
         this.webClient2 = WebClient.builder()
-                .baseUrl("http://localhost:9091/api?key=" + supplier2ApiKey)
+                .baseUrl("http://mattismvm.switzerlandnorth.cloudapp.azure.com:8080/api?key=" + supplier2ApiKey)
                 .build();
         this.db = db;
         System.out.println("SupplierController Firestore instance: " + db);
