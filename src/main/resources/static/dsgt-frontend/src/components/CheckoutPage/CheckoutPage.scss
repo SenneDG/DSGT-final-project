@@ -15,6 +15,8 @@
             .checkout-items {
                 .checkout-item {
                     font-size: large;
+                    border-radius: 10px;
+                    padding: 10px;
 
                     .checkout-item-actions {
                         display: flex;
@@ -58,4 +60,29 @@
 .empty-cart {
     font-size: large;
     color: gray;
+}
+
+@keyframes borderExpand {
+  0% {
+    box-shadow: 0 0 0 0 red;
+  }
+  100% {
+    box-shadow: 0 0 0 10px red;
+  }
+}
+
+@keyframes finalBorder {
+  from {
+    border: none;
+  }
+  to {
+    border: 2px solid red;
+  }
+}
+
+.animate-borders {
+  animation: borderExpand 0.5s ease-out 0s 1,
+             borderExpand 0.5s ease-out 0.5s 1,
+             borderExpand 0.5s ease-out 1s 1,
+             finalBorder 0.5s ease-out 1.5s forwards;
 }
