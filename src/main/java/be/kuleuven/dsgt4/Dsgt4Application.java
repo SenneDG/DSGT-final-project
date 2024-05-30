@@ -1,5 +1,6 @@
 package be.kuleuven.dsgt4;
 
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
 import org.springframework.boot.SpringApplication;
@@ -15,6 +16,10 @@ import reactor.netty.http.client.HttpClient;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Objects;
 
 @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
@@ -49,18 +54,20 @@ public class Dsgt4Application {
 	@Bean
 	public String projectId() {
 		if (this.isProduction()) {
-			return "TODO level 2";
+			return "dsgt-3e54a";
 		} else {
 			return "dsgt-3e54a";
 		}
 	}
 	@Bean
-	public Firestore db() {
+	public Firestore db() throws IOException {
 		Firestore firestore;
 		if (isProduction()) {
+			GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("src/main/java/credentials.json"));
 			firestore = FirestoreOptions.getDefaultInstance()
 					.toBuilder()
 					.setProjectId(this.projectId())
+					.setCredentials(credentials)
 					.build()
 					.getService();
 		} else {
@@ -90,10 +97,4 @@ public class Dsgt4Application {
 		firewall.setAllowUrlEncodedSlash(true);
 		return firewall;
 	}
-
-
-
-
-
-
 }
