@@ -52,7 +52,7 @@ public class SupplierController {
     public SupplierController(WebClient.Builder webClientBuilder, Firestore db) {
         String supplier1ApiKey = "Iw8zeveVyaPNWonPNaU0213uw3g6Ei";
         this.webClient1 = WebClient.builder()
-                .baseUrl("http://localhost:9090/api?key=" + supplier1ApiKey)
+                .baseUrl("http://distrs.japaneast.cloudapp.azure.com:9090/api?key=" + supplier1ApiKey)
                 .build();
 
         String supplier2ApiKey = "Iw8zeveVyaPNWonPNaU0213uw3g6Ei";
