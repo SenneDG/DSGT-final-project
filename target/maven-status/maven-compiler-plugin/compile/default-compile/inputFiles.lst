@@ -1,12 +1,13 @@
+/home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/controller/StatusController.java
+/home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/auth/WebSecurityConfig.java
+/home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/auth/SecurityFilter.java
+/home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/Dsgt4Application.java
 /home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/dto/ShopItem.java
 /home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/controller/SupplierController.java
 /home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/controller/ManagerController.java
 /home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/dto/Order.java
 /home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/dto/UserMessage.java
-/home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/controller/StatusController.java
+/home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/dto/ResponseSupplier.java
 /home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/dto/User.java
-/home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/auth/WebSecurityConfig.java
-/home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/auth/SecurityFilter.java
 /home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/controller/ViewController.java
 /home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/dto/Item.java
-/home/dapp/Desktop/dsgt4start/src/main/java/be/kuleuven/dsgt4/Dsgt4Application.java

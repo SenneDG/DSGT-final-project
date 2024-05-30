@@ -42,6 +42,7 @@ class Webshop extends React.PureComponent<Props, State> {
   }
 
   componentDidMount() {
+      console.log(this.props.user.token);
     ApiService.general.getAllShopItems(this.props.user.token || '')
       .then((response) => {
         console.log(response);
@@ -49,7 +50,7 @@ class Webshop extends React.PureComponent<Props, State> {
       })
       .catch((error) => {
         if (error.response && error.response.status === 401) {
-          ModalHelper.openErrorModal({ message: 'You are unauthorized. Please login again.' });
+          ModalHelper.openErrorModal({ message: 'You are unauthorized. Please login again.'});
         } else {
           ModalHelper.openErrorModal({ message: 'Failed to fetch shop items' });
         }

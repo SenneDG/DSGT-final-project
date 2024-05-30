@@ -42,6 +42,7 @@ class Webshop extends React.PureComponent<Props, State> {
   }
 
   componentDidMount() {
+      console.log(this.props.user.token);
     ApiService.general.getAllShopItems(this.props.user.token || '')
       .then((response) => {
         console.log(response);

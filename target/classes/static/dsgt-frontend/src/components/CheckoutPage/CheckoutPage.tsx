@@ -45,7 +45,24 @@ class CheckoutPage extends React.PureComponent<Props, State> {
     }   
 
     render() {
-        const { cartItems } = this.props; 
+        const { cartItems } = this.props;
+        let animatedItems: string[] = [];
+        let setAnimatedItems = (divIds: string[]) => {
+            for (let divId of divIds) {
+                animatedItems.push(divId); // Use push() to add elements to the array
+                let element = document.getElementById(divId);
+                if (element !== null) {
+                    element.style.border = "2px solid red";
+                    element.classList.add("animate-borders");
+                }
+            }
+        };
+
+        let getProductName = (id: string) => {
+              let res = cartItems.find((element) => element.id == id);
+              if (res !== null && res !== undefined) return res.name;
+              return '';
+        };
 
         return (
             <div className="checkout-page">
@@ -56,7 +73,11 @@ class CheckoutPage extends React.PureComponent<Props, State> {
                         <div className="checkout-items">
                         {cartItems.length > 0 ? (
                             cartItems.map(item => (
-                            <div className='checkout-item' key={item.id}>
+                            <div
+                              className={`checkout-item ${animatedItems.includes(item.id.toString()) ? 'animate-borders' : ''}`}
+                              key={item.id}
+                              id={item.id.toString()}
+                            >
                                 <div className='checkout-item-details'>
                                 <h3>{item.name}</h3>
                                 <p>{item.description}</p>
@@ -97,7 +118,17 @@ class CheckoutPage extends React.PureComponent<Props, State> {
                             })
                             .catch((error) => {
                                 console.error(error);
-                                ModalHelper.openErrorModal({message: 'The checkout can not be processed.'});
+                                console.log(error);
+                                let message = "The checkout can not be processed.\n";
+                                let outOfStockItems = error.response.data.outOfStockItems;
+                                console.log(outOfStockItems);
+                                if (outOfStockItems.length != 0) {
+                                    for (const [key, value] of Object.entries(outOfStockItems)) {
+                                        message += `- There are only ${value} left of item ${getProductName(key)}\n`;
+                                    }
+                                    setAnimatedItems(Object.keys(outOfStockItems));
+                                }
+                                ModalHelper.openErrorModal({message: message});
                             })
                             .finally(() => {
                                 setSubmitting(false);
