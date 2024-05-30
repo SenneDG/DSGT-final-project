@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
 import { isMobile, isIOS } from 'react-device-detect';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
@@ -9,15 +9,13 @@ import Path from '../../utils/path/path';
 
 import { RootState } from '../../store/store';
 import { resizeWindow, WindowSizeStateType } from '../../store/window/slice';
-import { setQueryObject } from '../../store/route/slice';
+import { setQueryObject as setQueryObjectAction } from '../../store/route/slice';
 
 import ContainerModal from '../Modals/ContainerModal/ContainerModal';
 import DialogModal from '../Modals/DialogModal/DialogModal';
 
-
 import './App.scss';
 import Webshop from '../Webshop/Webshop';
-import ProtectedRoute from './ProtectedRoute/ProtectedRoute';
 import CheckoutPage from '../CheckoutPage/CheckoutPage';
 import ManagerPage from '../ManagerPage/ManagerPage';
 
@@ -39,46 +37,45 @@ const App: React.FC<Props> = (props) => {
   const mediaQueryList = window.matchMedia('(orientation: portrait)');
 
   useEffect(() => {
-    setQueryObject();
+    const setupWindowSize = () => {
+      if (isMobile) {
+        const isPortrait = mediaQueryList.matches;
+        if (isIOS && !isPortrait) {
+          props.resizeWindow({
+            width: window.screen.height,
+            height: window.screen.width,
+          });
+        } else {
+          props.resizeWindow({
+            width: window.screen.width,
+            height: window.screen.height,
+          });
+        }
+      } else {
+        props.resizeWindow({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+      }
+    };
+
     setupWindowSize();
     window.addEventListener('resize', setupWindowSize);
 
     return () => {
       window.removeEventListener('resize', setupWindowSize);
     };
-  }, []);
+  }, [isMobile, isIOS, mediaQueryList, props]);
 
   useEffect(() => {
+    const setQueryObject = () => {
+      const { search } = location;
+      const query = new URLSearchParams(search);
+      props.setQueryObject(query);
+    };
+
     setQueryObject();
-  }, [location.search]);
-
-  const setQueryObject = () => {
-    const { search } = location;
-    const query = new URLSearchParams(search);
-    props.setQueryObject(query);
-  };
-
-  const setupWindowSize = () => {
-    if (isMobile) {
-      const isPortrait = mediaQueryList.matches;
-      if (isIOS && !isPortrait) {
-        props.resizeWindow({
-          width: window.screen.height,
-          height: window.screen.width,
-        });
-      } else {
-        props.resizeWindow({
-          width: window.screen.width,
-          height: window.screen.height,
-        });
-      }
-    } else {
-      props.resizeWindow({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    }
-  };
+  }, [location.search, props]);
 
   return (
     <main
@@ -88,12 +85,13 @@ const App: React.FC<Props> = (props) => {
     >
       <div className="viewport">
         <div className="main-content">
-        <Routes>
-          <Route path={Path.mainPath} element={<Homepage navigate={navigate} />} />
-          <Route path={Path.webshopPath} element={<Webshop navigate={navigate} />} />
-          <Route path={Path.checkoutPath} element={<CheckoutPage navigate={navigate} />} />
-          <Route path={Path.managerPath} element={<ManagerPage navigate={navigate} />} />
-        </Routes>
+          <Routes>
+            <Route path={Path.mainPath} element={<Homepage navigate={navigate} />} />
+            <Route path={Path.webshopPath} element={<Webshop navigate={navigate} />} />
+            <Route path={Path.checkoutPath} element={<CheckoutPage navigate={navigate} />} />
+            <Route path={Path.managerPath} element={<ManagerPage navigate={navigate} />} />
+            <Route path="*" element={<div>404 Not Found</div>} />
+          </Routes>
         </div>
       </div>
 
@@ -110,7 +108,7 @@ const mapStateToProps = (state: RootState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   resizeWindow: (payload: any) => dispatch(resizeWindow(payload)),
-  setQueryObject: (payload: any) => dispatch(setQueryObject(payload)),
+  setQueryObject: (payload: any) => dispatch(setQueryObjectAction(payload)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
