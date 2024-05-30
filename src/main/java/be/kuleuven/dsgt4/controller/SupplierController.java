@@ -198,13 +198,8 @@ public class SupplierController {
 
         }
 
-        System.out.println(supplier1Success);
-        System.out.println(supplier2Success);
-
         res.setResponse((supplier1Success == null || supplier1Success.isEmpty()) && (supplier2Success == null || supplier2Success.isEmpty()));
         Map<String, Integer> outOfStockItems = new HashMap<String, Integer>();
-
-        System.out.println(res.getResponse());
 
         if (supplier1Success != null) {
             for (String key : supplier1Success.keySet()) {
@@ -218,13 +213,9 @@ public class SupplierController {
             }
         }
 
-        System.out.println(outOfStockItems);
-
         if (!res.getResponse()) {
             res.setError("Not in stock");
         }
-
-        res.setOutOfStockItems(outOfStockItems);
 
         return res;
     }
