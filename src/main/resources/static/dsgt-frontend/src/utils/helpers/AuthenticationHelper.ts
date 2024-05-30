@@ -15,10 +15,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-connectAuthEmulator(auth, 'http://localhost:8082');
+// connectAuthEmulator(auth, 'http://localhost:8082');
 
 const db = getFirestore(app);
-connectFirestoreEmulator(db, 'localhost', 8084); 
+// connectFirestoreEmulator(db, 'localhost', 8084);
 
 export { auth, db };
 export const analytics = getAnalytics(app);
